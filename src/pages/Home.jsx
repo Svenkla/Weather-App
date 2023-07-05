@@ -1,37 +1,35 @@
-import { useQuery, useQueryClient, refe } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "../components/Search";
 
 export const Home = function () {
   const [searchValue, setSearchValue] = useState("");
   const [show, setShow] = useState(false);
+  const [data, setData] = useState(null);
 
-  const { data, refetch } = useQuery({
-    queryKey: ["weather", searchValue],
-    queryFn: () =>
-      fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${searchValue}&units=metric&appid=ffca60bdd6b3d4721511f208d15df769`
-      ).then((res) => {
-        return res.json();
-      }),
-    enabled: true,
-  });
+  const fetchUserData = () => {
+    fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${searchValue}&units=metric&appid=ffca60bdd6b3d4721511f208d15df769`
+    )
+      .then((response) => response.json())
+      .then((info) => {
+        setData(info);
+      })
+      .catch((error) => {
+        console.error("Napaka pri pridobivanju podatkov:", error);
+      });
+  };
 
-  const searchCountry = function (e) {
+  const searchCountry = function () {
+    fetchUserData();
     setShow(true);
   };
 
-  function handleKeyDown(event) {
+  const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      fetchUserData();
       setShow(true);
     }
-  }
-
-  const searchNewCountry = function () {
-    setShow(false);
-    setSearchValue("");
-    refetch();
   };
 
   return (
@@ -44,26 +42,34 @@ export const Home = function () {
         <Search
           setSearchValue={setSearchValue}
           searchValue={searchValue}
-          onKeyDown={handleKeyDown}
+          handleKeyDown={handleKeyDown}
         />
         <button onClick={searchCountry}>POTRDI</button>
-        <button onClick={searchNewCountry}>Vpiši drugo Državo</button>
       </div>
 
-      {show && (
+      {show && data && (
         <div className="data-container">
           <div className="weatherImage">
             <img
-              src={`https://openweathermap.org/img/wn/${data?.weather[0].icon}.png`}
+              src={`https://openweathermap.org/img/wn/${data.weather[0].icon}.png`}
+              alt={data.weather[0].description}
             />
-            {data?.weather[0].description}
+            {data.weather[0].description}
           </div>
 
           <div className="All-data">
-            <p className="data">Temperature: {data?.main.temp} Celzius</p>
-            <p className="data">Feels like: {data?.main.feels_like} Celzius</p>
-            <p className="data">Humidity: {data?.main.humidity}%</p>
-            <p className="data">Wind speed: {data?.wind.speed} km/h</p>
+            <p className="data">
+              <span>Temperature:</span> {data.main.temp.toFixed(1)} Celzius
+            </p>
+            <p className="data">
+              <span>Feels like:</span> {data.main.feels_like.toFixed(1)} Celzius
+            </p>
+            <p className="data">
+              <span>Humidity:</span> {data.main.humidity}%
+            </p>
+            <p className="data">
+              <span>Wind speed:</span> {data.wind.speed} km/h
+            </p>
           </div>
         </div>
       )}

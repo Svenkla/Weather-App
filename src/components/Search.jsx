@@ -7,7 +7,7 @@ export const Search = function (props) {
           placeholder="Country"
           value={props.searchValue}
           onChange={(event) => props.setSearchValue(event.target.value)}
-          onKeyDown={props.onKeyDown}
+          onKeyDown={props.handleKeyDown}
         />
       </form>
     </div>
